@@ -1,0 +1,3 @@
+<Solution Description="Force disable Windows Update components.">
+  <Project Path="WU Killer.csproj" Id="f5a8ace1-d4d1-42e2-8cc2-e3ad9966f780" />
+</Solution>
