@@ -1,0 +1,62 @@
+trading:
+  # Trading pair symbol
+  symbol: "BTCUSDT"
+  
+  # Grid configuration
+  grid_levels: 10
+  price_range:
+    min: 40000.0
+    max: 50000.0
+  
+  # Take profit configuration
+  tp_percentage: 0.5  # 0.5% TP for each level
+  tp_mode: "fixed"    # "fixed" or "dynamic"
+  
+  # Order configuration
+  order_size: 0.001   # BTC amount per order
+  grid_spacing: "auto"  # "auto" or specific value
+  
+  # Timing configuration
+  update_interval: 1.0  # seconds
+  order_timeout: 300    # seconds
+
+risk_management:
+  # Position limits
+  max_positions: 5
+  max_exposure: 0.1     # 10% of balance
+  
+  # Stop loss configuration
+  stop_loss_percentage: 5.0
+  max_drawdown: 10.0
+  min_balance: 100.0
+  
+  # Emergency settings
+  emergency_stop_loss: 15.0
+  max_daily_trades: 100
+
+technical:
+  # API settings
+  retry_attempts: 3
+  timeout_seconds: 30
+  rate_limit_delay: 0.1
+  
+  # WebSocket settings
+  ws_reconnect_attempts: 5
+  ws_ping_interval: 30
+  
+  # Data management
+  price_precision: 2
+  quantity_precision: 6
+  
+logging:
+  level: "INFO"
+  format: "{time:YYYY-MM-DD HH:mm:ss} | {level} | {name}:{function}:{line} | {message}"
+  rotation: "1 day"
+  retention: "30 days"
+  
+notifications:
+  enabled: false
+  telegram:
+    enabled: false
+  email:
+    enabled: false

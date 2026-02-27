@@ -1,0 +1,585 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">
+        <i class="bi bi-speedometer2 me-2"></i>
+        Trading Dashboard
+    </h1>
+    <div class="d-flex gap-2">
+        <button class="btn btn-outline-primary btn-sm" id="refresh-data">
+            <i class="bi bi-arrow-clockwise me-1"></i>
+            Refresh
+        </button>
+        <button class="btn btn-outline-secondary btn-sm" id="export-data">
+            <i class="bi bi-download me-1"></i>
+            Export
+        </button>
+    </div>
+</div>
+
+<!-- Status Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card metric-card">
+            <div class="card-body text-center">
+                <div class="d-flex align-items-center justify-content-center mb-2">
+                    <i class="bi bi-robot fs-3 me-2"></i>
+                    <span class="status-indicator" id="bot-status-indicator"></span>
+                </div>
+                <h5 class="card-title">Bot Status</h5>
+                <p class="metric-value" id="bot-status-text">Loading...</p>
+                <small id="bot-uptime">Uptime: --</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card metric-card">
+            <div class="card-body text-center">
+                <i class="bi bi-currency-dollar fs-3 mb-2"></i>
+                <h5 class="card-title">Total PnL</h5>
+                <p class="metric-value" id="total-pnl">$0.00</p>
+                <small id="daily-pnl">Daily: $0.00</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card metric-card">
+            <div class="card-body text-center">
+                <i class="bi bi-graph-up fs-3 mb-2"></i>
+                <h5 class="card-title">Win Rate</h5>
+                <p class="metric-value" id="win-rate">0%</p>
+                <small id="total-trades">Trades: 0</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card metric-card">
+            <div class="card-body text-center">
+                <i class="bi bi-grid-3x3-gap fs-3 mb-2"></i>
+                <h5 class="card-title">Active Levels</h5>
+                <p class="metric-value" id="active-levels">0</p>
+                <small id="total-levels">Total: 0</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row mb-4">
+    <div class="col-lg-8 mb-3">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-graph-up me-2"></i>
+                    Portfolio Performance
+                </h5>
+                <div class="btn-group btn-group-sm" role="group">
+                    <input type="radio" class="btn-check" name="timeframe" id="timeframe-1h" value="1">
+                    <label class="btn btn-outline-primary" for="timeframe-1h">1H</label>
+                    
+                    <input type="radio" class="btn-check" name="timeframe" id="timeframe-6h" value="6">
+                    <label class="btn btn-outline-primary" for="timeframe-6h">6H</label>
+                    
+                    <input type="radio" class="btn-check" name="timeframe" id="timeframe-24h" value="24" checked>
+                    <label class="btn btn-outline-primary" for="timeframe-24h">24H</label>
+                    
+                    <input type="radio" class="btn-check" name="timeframe" id="timeframe-7d" value="168">
+                    <label class="btn btn-outline-primary" for="timeframe-7d">7D</label>
+                </div>
+            </div>
+            <div class="card-body">
+                <canvas id="performance-chart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4 mb-3">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    Risk Metrics
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Current Drawdown</span>
+                        <span id="current-drawdown" class="fw-bold">0%</span>
+                    </div>
+                    <div class="progress mt-1">
+                        <div id="drawdown-progress" class="progress-bar bg-warning" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Position Exposure</span>
+                        <span id="position-exposure" class="fw-bold">0%</span>
+                    </div>
+                    <div class="progress mt-1">
+                        <div id="exposure-progress" class="progress-bar bg-info" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Active Positions</span>
+                        <span id="active-positions" class="fw-bold">0/0</span>
+                    </div>
+                </div>
+                
+                <div class="alert alert-custom alert-info border-info" id="risk-status">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Risk levels normal
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Grid Levels and Recent Activity -->
+<div class="row">
+    <div class="col-lg-6 mb-3">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-grid-3x3-gap me-2"></i>
+                    Grid Levels
+                </h5>
+                <button class="btn btn-outline-primary btn-sm" id="refresh-grid">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </button>
+            </div>
+            <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                <div id="grid-levels-container">
+                    <div class="text-center text-muted">
+                        <div class="loading-spinner"></div>
+                        <p class="mt-2">Loading grid levels...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6 mb-3">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-clock-history me-2"></i>
+                    Recent Activity
+                </h5>
+            </div>
+            <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                <div id="recent-activity">
+                    <div class="text-center text-muted">
+                        <p>No recent activity</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Market Data -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-graph-up-arrow me-2"></i>
+                    Market Data
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-2">
+                        <h6>Symbol</h6>
+                        <p class="fw-bold" id="market-symbol">-</p>
+                    </div>
+                    <div class="col-md-2">
+                        <h6>Last Price</h6>
+                        <p class="fw-bold" id="market-price">$0.00</p>
+                    </div>
+                    <div class="col-md-2">
+                        <h6>24h Change</h6>
+                        <p class="fw-bold" id="market-change">0.00%</p>
+                    </div>
+                    <div class="col-md-2">
+                        <h6>24h Volume</h6>
+                        <p class="fw-bold" id="market-volume">0</p>
+                    </div>
+                    <div class="col-md-2">
+                        <h6>Bid</h6>
+                        <p class="fw-bold" id="market-bid">$0.00</p>
+                    </div>
+                    <div class="col-md-2">
+                        <h6>Ask</h6>
+                        <p class="fw-bold" id="market-ask">$0.00</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let performanceChart = null;
+    let recentActivity = [];
+
+    // Initialize dashboard
+    document.addEventListener('DOMContentLoaded', function() {
+        initializePerformanceChart();
+        loadInitialData();
+        
+        // Setup event listeners
+        document.querySelectorAll('input[name="timeframe"]').forEach(radio => {
+            radio.addEventListener('change', updatePerformanceChart);
+        });
+        
+        document.getElementById('refresh-data').addEventListener('click', loadInitialData);
+        document.getElementById('refresh-grid').addEventListener('click', loadGridLevels);
+    });
+
+    async function loadInitialData() {
+        try {
+            // Load status
+            const statusResponse = await fetch('/api/v1/status');
+            if (statusResponse.ok) {
+                const status = await statusResponse.json();
+                updateStatus(status);
+            }
+            
+            // Load performance
+            const performanceResponse = await fetch('/api/v1/performance');
+            if (performanceResponse.ok) {
+                const performance = await performanceResponse.json();
+                updatePerformance(performance);
+            }
+            
+            // Load grid levels
+            await loadGridLevels();
+            
+            // Load market data
+            await loadMarketData();
+            
+        } catch (error) {
+            console.error('Error loading initial data:', error);
+            showNotification('Error loading dashboard data', 'danger');
+        }
+    }
+
+    async function loadGridLevels() {
+        try {
+            const response = await fetch('/api/v1/grid-levels');
+            if (response.ok) {
+                const gridLevels = await response.json();
+                updateGridLevels(gridLevels);
+            }
+        } catch (error) {
+            console.error('Error loading grid levels:', error);
+        }
+    }
+
+    async function loadMarketData() {
+        try {
+            // Get symbol from config or default to BTCUSDT
+            const configResponse = await fetch('/api/v1/config');
+            let symbol = 'BTCUSDT';
+            if (configResponse.ok) {
+                const config = await configResponse.json();
+                symbol = config.trading?.symbol || 'BTCUSDT';
+            }
+            
+            const response = await fetch(`/api/v1/market-data/${symbol}`);
+            if (response.ok) {
+                const marketData = await response.json();
+                updateMarketData(marketData);
+            }
+        } catch (error) {
+            console.error('Error loading market data:', error);
+        }
+    }
+
+    function updateStatus(data) {
+        // Bot status
+        const statusIndicator = document.getElementById('bot-status-indicator');
+        const statusText = document.getElementById('bot-status-text');
+        const uptime = document.getElementById('bot-uptime');
+        
+        if (data.is_running) {
+            statusIndicator.className = 'status-indicator status-running';
+            statusText.textContent = 'Running';
+        } else {
+            statusIndicator.className = 'status-indicator status-stopped';
+            statusText.textContent = 'Stopped';
+        }
+        
+        const uptimeHours = Math.floor(data.uptime_seconds / 3600);
+        const uptimeMinutes = Math.floor((data.uptime_seconds % 3600) / 60);
+        uptime.textContent = `Uptime: ${uptimeHours}h ${uptimeMinutes}m`;
+        
+        // Risk metrics
+        if (data.risk_status) {
+            document.getElementById('current-drawdown').textContent = 
+                data.risk_status.current_drawdown.toFixed(2) + '%';
+            document.getElementById('drawdown-progress').style.width = 
+                Math.min(data.risk_status.current_drawdown, 100) + '%';
+            
+            const exposure = (data.risk_status.current_exposure / data.risk_status.max_exposure) * 100;
+            document.getElementById('position-exposure').textContent = exposure.toFixed(1) + '%';
+            document.getElementById('exposure-progress').style.width = Math.min(exposure, 100) + '%';
+            
+            document.getElementById('active-positions').textContent = 
+                `${data.risk_status.current_positions}/${data.risk_status.max_positions}`;
+            
+            // Risk status alert
+            const riskAlert = document.getElementById('risk-status');
+            if (data.risk_status.emergency_stop) {
+                riskAlert.className = 'alert alert-custom alert-danger border-danger';
+                riskAlert.innerHTML = '<i class="bi bi-exclamation-triangle me-2"></i>Emergency stop active!';
+            } else if (data.risk_status.current_drawdown > 5) {
+                riskAlert.className = 'alert alert-custom alert-warning border-warning';
+                riskAlert.innerHTML = '<i class="bi bi-exclamation-triangle me-2"></i>High drawdown detected';
+            } else {
+                riskAlert.className = 'alert alert-custom alert-info border-info';
+                riskAlert.innerHTML = '<i class="bi bi-info-circle me-2"></i>Risk levels normal';
+            }
+        }
+        
+        // Grid status
+        if (data.grid_status) {
+            const activeLevels = Object.values(data.grid_status.status_counts)
+                .reduce((sum, count) => sum + count, 0) - (data.grid_status.status_counts.inactive || 0);
+            
+            document.getElementById('active-levels').textContent = activeLevels;
+            document.getElementById('total-levels').textContent = `Total: ${data.grid_status.total_levels}`;
+        }
+    }
+
+    function updatePerformance(data) {
+        // PnL metrics
+        document.getElementById('total-pnl').textContent = 
+            '$' + (data.total_pnl || 0).toFixed(2);
+        document.getElementById('daily-pnl').textContent = 
+            'Daily: $' + (data.daily_pnl || 0).toFixed(2);
+        
+        // Win rate
+        document.getElementById('win-rate').textContent = 
+            (data.win_rate || 0).toFixed(1) + '%';
+        document.getElementById('total-trades').textContent = 
+            `Trades: ${data.total_trades || 0}`;
+        
+        // Update performance chart
+        updatePerformanceChart();
+    }
+
+    function updateGridLevels(data) {
+        const container = document.getElementById('grid-levels-container');
+        
+        if (!data || data.length === 0) {
+            container.innerHTML = '<div class="text-center text-muted"><p>No grid levels configured</p></div>';
+            return;
+        }
+        
+        const html = data.map(level => {
+            const statusClass = getGridLevelStatusClass(level.status);
+            const statusIcon = getGridLevelStatusIcon(level.status);
+            
+            return `
+                <div class="grid-level-card card mb-2 ${statusClass}">
+                    <div class="card-body py-2">
+                        <div class="row align-items-center">
+                            <div class="col-2">
+                                <strong>L${level.level_id}</strong>
+                            </div>
+                            <div class="col-3">
+                                <small class="text-muted">Price</small><br>
+                                <strong>$${level.price}</strong>
+                            </div>
+                            <div class="col-3">
+                                <small class="text-muted">TP</small><br>
+                                <strong>$${level.tp_price}</strong>
+                            </div>
+                            <div class="col-2">
+                                <small class="text-muted">Qty</small><br>
+                                <strong>${level.quantity}</strong>
+                            </div>
+                            <div class="col-2 text-end">
+                                ${statusIcon}
+                                <small class="d-block text-muted">${level.status}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        container.innerHTML = html;
+    }
+
+    function updateMarketData(data) {
+        document.getElementById('market-symbol').textContent = data.symbol;
+        document.getElementById('market-price').textContent = '$' + data.last_price.toFixed(2);
+        
+        const change = data.price_change_24h;
+        const changeElement = document.getElementById('market-change');
+        changeElement.textContent = (change > 0 ? '+' : '') + change.toFixed(2) + '%';
+        changeElement.className = 'fw-bold ' + (change > 0 ? 'text-success' : change < 0 ? 'text-danger' : '');
+        
+        document.getElementById('market-volume').textContent = data.volume_24h.toLocaleString();
+        document.getElementById('market-bid').textContent = '$' + data.bid_price.toFixed(2);
+        document.getElementById('market-ask').textContent = '$' + data.ask_price.toFixed(2);
+    }
+
+    function getGridLevelStatusClass(status) {
+        switch(status) {
+            case 'inactive': return 'grid-level-inactive';
+            case 'sell_pending': return 'grid-level-active';
+            case 'sell_filled': return 'grid-level-filled';
+            case 'waiting_tp': return 'grid-level-waiting';
+            case 'buy_pending': return 'grid-level-active';
+            case 'buy_filled': return 'grid-level-filled';
+            default: return 'grid-level-inactive';
+        }
+    }
+
+    function getGridLevelStatusIcon(status) {
+        switch(status) {
+            case 'inactive': return '<i class="bi bi-circle text-muted"></i>';
+            case 'sell_pending': return '<i class="bi bi-arrow-up-circle text-primary"></i>';
+            case 'sell_filled': return '<i class="bi bi-check-circle text-success"></i>';
+            case 'waiting_tp': return '<i class="bi bi-clock text-warning"></i>';
+            case 'buy_pending': return '<i class="bi bi-arrow-down-circle text-primary"></i>';
+            case 'buy_filled': return '<i class="bi bi-check-circle text-success"></i>';
+            default: return '<i class="bi bi-circle text-muted"></i>';
+        }
+    }
+
+    function initializePerformanceChart() {
+        const ctx = document.getElementById('performance-chart').getContext('2d');
+        performanceChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Portfolio Value',
+                    data: [],
+                    borderColor: 'rgb(37, 99, 235)',
+                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toFixed(2);
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
+
+    async function updatePerformanceChart() {
+        const timeframe = document.querySelector('input[name="timeframe"]:checked').value;
+        
+        try {
+            const response = await fetch(`/api/v1/portfolio/chart-data?hours=${timeframe}`);
+            if (response.ok) {
+                const data = await response.json();
+                
+                const labels = data.map(point => {
+                    const date = new Date(point.timestamp);
+                    return date.toLocaleTimeString();
+                });
+                
+                const values = data.map(point => point.total_value);
+                
+                performanceChart.data.labels = labels;
+                performanceChart.data.datasets[0].data = values;
+                performanceChart.update();
+            }
+        } catch (error) {
+            console.error('Error updating performance chart:', error);
+        }
+    }
+
+    // WebSocket message handlers
+    function handleWebSocketMessage(data) {
+        switch(data.type) {
+            case 'order_filled':
+                addRecentActivity(`Order filled: ${data.data.symbol} ${data.data.side} ${data.data.quantity}`, 'success');
+                break;
+            case 'grid_cycle_completed':
+                addRecentActivity(`Grid cycle completed: Level ${data.data.level_id}, Profit: $${data.data.profit}`, 'success');
+                break;
+            case 'risk_alert':
+                addRecentActivity(`Risk Alert: ${data.data.message}`, 'warning');
+                break;
+            case 'emergency_stop':
+                addRecentActivity('Emergency Stop Triggered!', 'danger');
+                break;
+        }
+    }
+
+    function addRecentActivity(message, type) {
+        const timestamp = new Date().toLocaleTimeString();
+        const activity = { message, type, timestamp };
+        
+        recentActivity.unshift(activity);
+        if (recentActivity.length > 10) {
+            recentActivity.pop();
+        }
+        
+        updateRecentActivityDisplay();
+    }
+
+    function updateRecentActivityDisplay() {
+        const container = document.getElementById('recent-activity');
+        
+        if (recentActivity.length === 0) {
+            container.innerHTML = '<div class="text-center text-muted"><p>No recent activity</p></div>';
+            return;
+        }
+        
+        const html = recentActivity.map(activity => {
+            const badgeClass = activity.type === 'success' ? 'bg-success' : 
+                              activity.type === 'warning' ? 'bg-warning' : 
+                              activity.type === 'danger' ? 'bg-danger' : 'bg-primary';
+            
+            return `
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <span class="badge ${badgeClass} me-2">${activity.type}</span>
+                        <span>${activity.message}</span>
+                    </div>
+                    <small class="text-muted">${activity.timestamp}</small>
+                </div>
+            `;
+        }).join('');
+        
+        container.innerHTML = html;
+    }
+</script>
+{% endblock %}

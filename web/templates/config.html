@@ -1,0 +1,538 @@
+{% extends "base.html" %}
+
+{% block title %}Configuration - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">
+        <i class="bi bi-gear me-2"></i>
+        Configuration
+    </h1>
+    <div class="d-flex gap-2">
+        <button class="btn btn-outline-secondary btn-sm" id="reset-config">
+            <i class="bi bi-arrow-clockwise me-1"></i>
+            Reset
+        </button>
+        <button class="btn btn-primary btn-sm" id="save-config">
+            <i class="bi bi-check-lg me-1"></i>
+            Save Changes
+        </button>
+    </div>
+</div>
+
+<!-- Configuration Tabs -->
+<ul class="nav nav-tabs mb-4" id="configTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="grid-tab" data-bs-toggle="tab" data-bs-target="#grid-config" type="button" role="tab">
+            <i class="bi bi-grid-3x3-gap me-2"></i>
+            Grid Trading
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="risk-tab" data-bs-toggle="tab" data-bs-target="#risk-config" type="button" role="tab">
+            <i class="bi bi-shield-check me-2"></i>
+            Risk Management
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="technical-tab" data-bs-toggle="tab" data-bs-target="#technical-config" type="button" role="tab">
+            <i class="bi bi-cpu me-2"></i>
+            Technical
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="configTabContent">
+    <!-- Grid Trading Configuration -->
+    <div class="tab-pane fade show active" id="grid-config" role="tabpanel">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Grid Trading Parameters</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="grid-config-form">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="symbol" class="form-label">Trading Symbol</label>
+                                    <input type="text" class="form-control" id="symbol" name="symbol" placeholder="BTCUSDT" required>
+                                    <div class="form-text">The trading pair symbol (e.g., BTCUSDT, ETHUSDT)</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="grid-levels" class="form-label">Grid Levels</label>
+                                    <input type="number" class="form-control" id="grid-levels" name="grid_levels" min="2" max="50" required>
+                                    <div class="form-text">Number of grid levels (2-50)</div>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="min-price" class="form-label">Minimum Price</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="min-price" name="min_price" step="0.01" min="0" required>
+                                    </div>
+                                    <div class="form-text">Lower bound of the grid</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="max-price" class="form-label">Maximum Price</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="max-price" name="max_price" step="0.01" min="0" required>
+                                    </div>
+                                    <div class="form-text">Upper bound of the grid</div>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="tp-percentage" class="form-label">Take Profit %</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" id="tp-percentage" name="tp_percentage" step="0.1" min="0.1" max="10" required>
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                    <div class="form-text">Take profit percentage for each level</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="order-size" class="form-label">Order Size</label>
+                                    <input type="number" class="form-control" id="order-size" name="order_size" step="0.0001" min="0.0001" required>
+                                    <div class="form-text">Size of each order in base currency</div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Grid Preview</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="grid-preview">
+                            <div class="text-center text-muted">
+                                <p>Configure grid parameters to see preview</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="mb-0">Calculations</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <h6>Grid Spacing</h6>
+                                <p class="fw-bold" id="grid-spacing">$0.00</p>
+                            </div>
+                            <div class="col-6">
+                                <h6>Total Capital</h6>
+                                <p class="fw-bold" id="total-capital">$0.00</p>
+                            </div>
+                        </div>
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <h6>Profit per Cycle</h6>
+                                <p class="fw-bold" id="profit-per-cycle">$0.00</p>
+                            </div>
+                            <div class="col-6">
+                                <h6>Max Profit</h6>
+                                <p class="fw-bold" id="max-profit">$0.00</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Risk Management Configuration -->
+    <div class="tab-pane fade" id="risk-config" role="tabpanel">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Risk Management Settings</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="risk-config-form">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="max-positions" class="form-label">Maximum Positions</label>
+                                    <input type="number" class="form-control" id="max-positions" name="max_positions" min="1" max="20" required>
+                                    <div class="form-text">Maximum number of open positions</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="max-exposure" class="form-label">Maximum Exposure</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" id="max-exposure" name="max_exposure" step="0.01" min="0.01" max="1" required>
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                    <div class="form-text">Maximum portfolio exposure (0.01-1.0)</div>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="stop-loss" class="form-label">Stop Loss</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" id="stop-loss" name="stop_loss_percentage" step="0.1" min="1" max="50" required>
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                    <div class="form-text">Daily stop loss percentage</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="max-drawdown" class="form-label">Maximum Drawdown</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" id="max-drawdown" name="max_drawdown" step="0.1" min="1" max="50" required>
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                    <div class="form-text">Maximum allowed drawdown</div>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="min-balance" class="form-label">Minimum Balance</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="min-balance" name="min_balance" step="1" min="1" required>
+                                    </div>
+                                    <div class="form-text">Minimum account balance to maintain</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="emergency-stop-loss" class="form-label">Emergency Stop Loss</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" id="emergency-stop-loss" name="emergency_stop_loss" step="0.1" min="5" max="50" required>
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                    <div class="form-text">Emergency stop loss threshold</div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Risk Assessment</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="risk-assessment">
+                            <div class="mb-3">
+                                <h6>Risk Level</h6>
+                                <div class="progress">
+                                    <div id="risk-level-bar" class="progress-bar bg-success" style="width: 0%"></div>
+                                </div>
+                                <small id="risk-level-text" class="text-muted">Low Risk</small>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <h6>Capital at Risk</h6>
+                                <p class="fw-bold" id="capital-at-risk">$0.00</p>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <h6>Max Potential Loss</h6>
+                                <p class="fw-bold text-danger" id="max-potential-loss">$0.00</p>
+                            </div>
+                            
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle me-2"></i>
+                                <small>Risk assessment is based on current configuration</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Technical Configuration -->
+    <div class="tab-pane fade" id="technical-config" role="tabpanel">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Technical Settings</h5>
+            </div>
+            <div class="card-body">
+                <form id="technical-config-form">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="retry-attempts" class="form-label">Retry Attempts</label>
+                            <input type="number" class="form-control" id="retry-attempts" name="retry_attempts" min="1" max="10">
+                            <div class="form-text">Number of retry attempts for failed operations</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="timeout-seconds" class="form-label">Timeout</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="timeout-seconds" name="timeout_seconds" min="5" max="120">
+                                <span class="input-group-text">sec</span>
+                            </div>
+                            <div class="form-text">API request timeout</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="rate-limit-delay" class="form-label">Rate Limit Delay</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="rate-limit-delay" name="rate_limit_delay" step="0.01" min="0.01" max="1">
+                                <span class="input-group-text">sec</span>
+                            </div>
+                            <div class="form-text">Delay between API calls</div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="price-precision" class="form-label">Price Precision</label>
+                            <input type="number" class="form-control" id="price-precision" name="price_precision" min="0" max="8">
+                            <div class="form-text">Number of decimal places for prices</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="quantity-precision" class="form-label">Quantity Precision</label>
+                            <input type="number" class="form-control" id="quantity-precision" name="quantity_precision" min="0" max="8">
+                            <div class="form-text">Number of decimal places for quantities</div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let currentConfig = {};
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadConfiguration();
+        setupEventListeners();
+    });
+
+    function setupEventListeners() {
+        // Save configuration
+        document.getElementById('save-config').addEventListener('click', saveConfiguration);
+        
+        // Reset configuration
+        document.getElementById('reset-config').addEventListener('click', loadConfiguration);
+        
+        // Grid parameter changes
+        const gridInputs = document.querySelectorAll('#grid-config-form input');
+        gridInputs.forEach(input => {
+            input.addEventListener('input', updateGridPreview);
+        });
+        
+        // Risk parameter changes
+        const riskInputs = document.querySelectorAll('#risk-config-form input');
+        riskInputs.forEach(input => {
+            input.addEventListener('input', updateRiskAssessment);
+        });
+    }
+
+    async function loadConfiguration() {
+        try {
+            const response = await fetch('/api/v1/config');
+            if (response.ok) {
+                currentConfig = await response.json();
+                populateConfigurationForms();
+                updateGridPreview();
+                updateRiskAssessment();
+            } else {
+                showNotification('Error loading configuration', 'danger');
+            }
+        } catch (error) {
+            console.error('Error loading configuration:', error);
+            showNotification('Error loading configuration', 'danger');
+        }
+    }
+
+    function populateConfigurationForms() {
+        // Grid configuration
+        if (currentConfig.trading) {
+            document.getElementById('symbol').value = currentConfig.trading.symbol || '';
+            document.getElementById('grid-levels').value = currentConfig.trading.grid_levels || '';
+            document.getElementById('min-price').value = currentConfig.trading.price_range?.min || '';
+            document.getElementById('max-price').value = currentConfig.trading.price_range?.max || '';
+            document.getElementById('tp-percentage').value = currentConfig.trading.tp_percentage || '';
+            document.getElementById('order-size').value = currentConfig.trading.order_size || '';
+        }
+        
+        // Risk configuration
+        if (currentConfig.risk_management) {
+            document.getElementById('max-positions').value = currentConfig.risk_management.max_positions || '';
+            document.getElementById('max-exposure').value = currentConfig.risk_management.max_exposure || '';
+            document.getElementById('stop-loss').value = currentConfig.risk_management.stop_loss_percentage || '';
+            document.getElementById('max-drawdown').value = currentConfig.risk_management.max_drawdown || '';
+            document.getElementById('min-balance').value = currentConfig.risk_management.min_balance || '';
+            document.getElementById('emergency-stop-loss').value = currentConfig.risk_management.emergency_stop_loss || '';
+        }
+        
+        // Technical configuration
+        if (currentConfig.technical) {
+            document.getElementById('retry-attempts').value = currentConfig.technical.retry_attempts || '';
+            document.getElementById('timeout-seconds').value = currentConfig.technical.timeout_seconds || '';
+            document.getElementById('rate-limit-delay').value = currentConfig.technical.rate_limit_delay || '';
+            document.getElementById('price-precision').value = currentConfig.technical.price_precision || '';
+            document.getElementById('quantity-precision').value = currentConfig.technical.quantity_precision || '';
+        }
+    }
+
+    async function saveConfiguration() {
+        try {
+            // Collect grid configuration
+            const gridConfig = {
+                symbol: document.getElementById('symbol').value,
+                min_price: parseFloat(document.getElementById('min-price').value),
+                max_price: parseFloat(document.getElementById('max-price').value),
+                num_levels: parseInt(document.getElementById('grid-levels').value),
+                tp_percentage: parseFloat(document.getElementById('tp-percentage').value),
+                order_size: parseFloat(document.getElementById('order-size').value)
+            };
+            
+            // Collect risk configuration
+            const riskConfig = {
+                max_positions: parseInt(document.getElementById('max-positions').value),
+                max_exposure: parseFloat(document.getElementById('max-exposure').value),
+                stop_loss_percentage: parseFloat(document.getElementById('stop-loss').value),
+                max_drawdown: parseFloat(document.getElementById('max-drawdown').value),
+                min_balance: parseFloat(document.getElementById('min-balance').value),
+                emergency_stop_loss: parseFloat(document.getElementById('emergency-stop-loss').value)
+            };
+            
+            // Save grid configuration
+            const gridResponse = await fetch('/api/v1/config/grid', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(gridConfig)
+            });
+            
+            // Save risk configuration
+            const riskResponse = await fetch('/api/v1/config/risk', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(riskConfig)
+            });
+            
+            if (gridResponse.ok && riskResponse.ok) {
+                showNotification('Configuration saved successfully', 'success');
+                await loadConfiguration(); // Reload to get updated config
+            } else {
+                const gridError = await gridResponse.text();
+                const riskError = await riskResponse.text();
+                showNotification(`Error saving configuration: ${gridError || riskError}`, 'danger');
+            }
+            
+        } catch (error) {
+            console.error('Error saving configuration:', error);
+            showNotification('Error saving configuration', 'danger');
+        }
+    }
+
+    function updateGridPreview() {
+        const minPrice = parseFloat(document.getElementById('min-price').value) || 0;
+        const maxPrice = parseFloat(document.getElementById('max-price').value) || 0;
+        const gridLevels = parseInt(document.getElementById('grid-levels').value) || 0;
+        const tpPercentage = parseFloat(document.getElementById('tp-percentage').value) || 0;
+        const orderSize = parseFloat(document.getElementById('order-size').value) || 0;
+        
+        if (minPrice && maxPrice && gridLevels && minPrice < maxPrice) {
+            // Calculate grid spacing
+            const gridSpacing = (maxPrice - minPrice) / (gridLevels - 1);
+            document.getElementById('grid-spacing').textContent = '$' + gridSpacing.toFixed(2);
+            
+            // Calculate total capital needed
+            const totalCapital = orderSize * gridLevels * maxPrice;
+            document.getElementById('total-capital').textContent = '$' + totalCapital.toFixed(2);
+            
+            // Calculate profit per cycle
+            const profitPerCycle = orderSize * maxPrice * (tpPercentage / 100);
+            document.getElementById('profit-per-cycle').textContent = '$' + profitPerCycle.toFixed(4);
+            
+            // Calculate max profit (if all levels complete)
+            const maxProfit = profitPerCycle * gridLevels;
+            document.getElementById('max-profit').textContent = '$' + maxProfit.toFixed(2);
+            
+            // Generate grid preview
+            generateGridPreview(minPrice, maxPrice, gridLevels, tpPercentage);
+        } else {
+            // Reset calculations
+            document.getElementById('grid-spacing').textContent = '$0.00';
+            document.getElementById('total-capital').textContent = '$0.00';
+            document.getElementById('profit-per-cycle').textContent = '$0.00';
+            document.getElementById('max-profit').textContent = '$0.00';
+        }
+    }
+
+    function generateGridPreview(minPrice, maxPrice, gridLevels, tpPercentage) {
+        const container = document.getElementById('grid-preview');
+        const spacing = (maxPrice - minPrice) / (gridLevels - 1);
+        
+        let html = '<div class="grid-preview-levels">';
+        
+        for (let i = gridLevels - 1; i >= 0; i--) {
+            const price = minPrice + (spacing * i);
+            const tpPrice = price * (1 - tpPercentage / 100);
+            
+            html += `
+                <div class="d-flex justify-content-between align-items-center mb-1 p-2 border rounded">
+                    <small><strong>L${i}</strong></small>
+                    <small>$${price.toFixed(2)}</small>
+                    <small class="text-muted">TP: $${tpPrice.toFixed(2)}</small>
+                </div>
+            `;
+        }
+        
+        html += '</div>';
+        container.innerHTML = html;
+    }
+
+    function updateRiskAssessment() {
+        const maxExposure = parseFloat(document.getElementById('max-exposure').value) || 0;
+        const stopLoss = parseFloat(document.getElementById('stop-loss').value) || 0;
+        const maxDrawdown = parseFloat(document.getElementById('max-drawdown').value) || 0;
+        const minBalance = parseFloat(document.getElementById('min-balance').value) || 0;
+        
+        // Calculate risk level (simplified)
+        let riskScore = 0;
+        if (maxExposure > 0.5) riskScore += 30;
+        else if (maxExposure > 0.2) riskScore += 15;
+        
+        if (stopLoss < 5) riskScore += 25;
+        else if (stopLoss < 10) riskScore += 10;
+        
+        if (maxDrawdown > 20) riskScore += 25;
+        else if (maxDrawdown > 10) riskScore += 10;
+        
+        // Update risk level bar
+        const riskBar = document.getElementById('risk-level-bar');
+        const riskText = document.getElementById('risk-level-text');
+        
+        if (riskScore < 20) {
+            riskBar.className = 'progress-bar bg-success';
+            riskBar.style.width = '25%';
+            riskText.textContent = 'Low Risk';
+        } else if (riskScore < 40) {
+            riskBar.className = 'progress-bar bg-warning';
+            riskBar.style.width = '50%';
+            riskText.textContent = 'Medium Risk';
+        } else {
+            riskBar.className = 'progress-bar bg-danger';
+            riskBar.style.width = '75%';
+            riskText.textContent = 'High Risk';
+        }
+        
+        // Calculate capital at risk
+        const capitalAtRisk = minBalance * (maxExposure || 0);
+        document.getElementById('capital-at-risk').textContent = '$' + capitalAtRisk.toFixed(2);
+        
+        // Calculate max potential loss
+        const maxPotentialLoss = minBalance * (stopLoss / 100 || 0);
+        document.getElementById('max-potential-loss').textContent = '$' + maxPotentialLoss.toFixed(2);
+    }
+</script>
+{% endblock %}

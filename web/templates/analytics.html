@@ -1,0 +1,536 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">
+        <i class="bi bi-graph-up me-2"></i>
+        Trading Analytics
+    </h1>
+    <div class="d-flex gap-2">
+        <select class="form-select form-select-sm" id="timeframe-select" style="width: auto;">
+            <option value="1">Last Hour</option>
+            <option value="6">Last 6 Hours</option>
+            <option value="24" selected>Last 24 Hours</option>
+            <option value="168">Last Week</option>
+            <option value="720">Last Month</option>
+        </select>
+        <button class="btn btn-outline-primary btn-sm" id="export-analytics">
+            <i class="bi bi-download me-1"></i>
+            Export
+        </button>
+    </div>
+</div>
+
+<!-- Performance Overview -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="bi bi-currency-dollar fs-2 text-success mb-2"></i>
+                <h5 class="card-title">Total Return</h5>
+                <h3 class="text-success" id="total-return">+$0.00</h3>
+                <small class="text-muted" id="return-percentage">0.00%</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="bi bi-graph-up fs-2 text-primary mb-2"></i>
+                <h5 class="card-title">Sharpe Ratio</h5>
+                <h3 class="text-primary" id="sharpe-ratio">0.00</h3>
+                <small class="text-muted">Risk-adjusted return</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="bi bi-arrow-down-circle fs-2 text-warning mb-2"></i>
+                <h5 class="card-title">Max Drawdown</h5>
+                <h3 class="text-warning" id="max-drawdown-analytics">0.00%</h3>
+                <small class="text-muted">Peak to trough</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="bi bi-trophy fs-2 text-info mb-2"></i>
+                <h5 class="card-title">Win Rate</h5>
+                <h3 class="text-info" id="win-rate-analytics">0.00%</h3>
+                <small class="text-muted" id="total-trades-analytics">0 trades</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row mb-4">
+    <div class="col-lg-8 mb-3">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Portfolio Performance</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="portfolio-chart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4 mb-3">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Profit Distribution</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="profit-distribution-chart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Trading Statistics -->
+<div class="row mb-4">
+    <div class="col-lg-6 mb-3">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Trading Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <div class="mb-3">
+                            <h6>Total Trades</h6>
+                            <p class="h4" id="stats-total-trades">0</p>
+                        </div>
+                        <div class="mb-3">
+                            <h6>Winning Trades</h6>
+                            <p class="h4 text-success" id="stats-winning-trades">0</p>
+                        </div>
+                        <div class="mb-3">
+                            <h6>Losing Trades</h6>
+                            <p class="h4 text-danger" id="stats-losing-trades">0</p>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="mb-3">
+                            <h6>Average Profit</h6>
+                            <p class="h4 text-success" id="stats-avg-profit">$0.00</p>
+                        </div>
+                        <div class="mb-3">
+                            <h6>Average Loss</h6>
+                            <p class="h4 text-danger" id="stats-avg-loss">$0.00</p>
+                        </div>
+                        <div class="mb-3">
+                            <h6>Profit Factor</h6>
+                            <p class="h4" id="stats-profit-factor">0.00</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6 mb-3">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Grid Performance</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <div class="mb-3">
+                            <h6>Completed Cycles</h6>
+                            <p class="h4" id="grid-completed-cycles">0</p>
+                        </div>
+                        <div class="mb-3">
+                            <h6>Active Levels</h6>
+                            <p class="h4 text-primary" id="grid-active-levels">0</p>
+                        </div>
+                        <div class="mb-3">
+                            <h6>Best Level</h6>
+                            <p class="h4 text-success" id="grid-best-level">-</p>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="mb-3">
+                            <h6>Grid Profit</h6>
+                            <p class="h4 text-success" id="grid-total-profit">$0.00</p>
+                        </div>
+                        <div class="mb-3">
+                            <h6>Avg Cycle Time</h6>
+                            <p class="h4" id="grid-avg-cycle-time">0h 0m</p>
+                        </div>
+                        <div class="mb-3">
+                            <h6>Efficiency</h6>
+                            <p class="h4" id="grid-efficiency">0.00%</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Analysis -->
+<div class="row">
+    <div class="col-lg-8 mb-3">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Trade History</h5>
+                <button class="btn btn-outline-primary btn-sm" id="refresh-trades">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="trades-table">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Level</th>
+                                <th>Type</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>PnL</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="trades-tbody">
+                            <tr>
+                                <td colspan="7" class="text-center text-muted">
+                                    <div class="loading-spinner"></div>
+                                    Loading trade history...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4 mb-3">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Risk Metrics</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Value at Risk (95%)</span>
+                        <span class="fw-bold" id="var-95">$0.00</span>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Expected Shortfall</span>
+                        <span class="fw-bold" id="expected-shortfall">$0.00</span>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Beta</span>
+                        <span class="fw-bold" id="beta">0.00</span>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Volatility</span>
+                        <span class="fw-bold" id="volatility">0.00%</span>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Correlation</span>
+                        <span class="fw-bold" id="correlation">0.00</span>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <small>Risk metrics calculated over selected timeframe</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let portfolioChart = null;
+    let profitDistributionChart = null;
+    let currentTimeframe = '24';
+
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeCharts();
+        loadAnalyticsData();
+        
+        // Setup event listeners
+        document.getElementById('timeframe-select').addEventListener('change', function() {
+            currentTimeframe = this.value;
+            loadAnalyticsData();
+        });
+        
+        document.getElementById('refresh-trades').addEventListener('click', loadTradeHistory);
+        document.getElementById('export-analytics').addEventListener('click', exportAnalytics);
+    });
+
+    function initializeCharts() {
+        // Portfolio performance chart
+        const portfolioCtx = document.getElementById('portfolio-chart').getContext('2d');
+        portfolioChart = new Chart(portfolioCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Portfolio Value',
+                    data: [],
+                    borderColor: 'rgb(37, 99, 235)',
+                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: 'Realized PnL',
+                    data: [],
+                    borderColor: 'rgb(16, 185, 129)',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    tension: 0.4,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toFixed(2);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Profit distribution chart
+        const profitCtx = document.getElementById('profit-distribution-chart').getContext('2d');
+        profitDistributionChart = new Chart(profitCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Profitable Trades', 'Losing Trades'],
+                datasets: [{
+                    data: [0, 0],
+                    backgroundColor: [
+                        'rgba(16, 185, 129, 0.8)',
+                        'rgba(239, 68, 68, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgb(16, 185, 129)',
+                        'rgb(239, 68, 68)'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+
+    async function loadAnalyticsData() {
+        try {
+            // Load performance data
+            const performanceResponse = await fetch('/api/v1/performance');
+            if (performanceResponse.ok) {
+                const performance = await performanceResponse.json();
+                updatePerformanceMetrics(performance);
+            }
+            
+            // Load portfolio chart data
+            const chartResponse = await fetch(`/api/v1/portfolio/chart-data?hours=${currentTimeframe}`);
+            if (chartResponse.ok) {
+                const chartData = await chartResponse.json();
+                updatePortfolioChart(chartData);
+            }
+            
+            // Load grid levels data
+            const gridResponse = await fetch('/api/v1/grid-levels');
+            if (gridResponse.ok) {
+                const gridData = await gridResponse.json();
+                updateGridMetrics(gridData);
+            }
+            
+            // Load trade history
+            await loadTradeHistory();
+            
+        } catch (error) {
+            console.error('Error loading analytics data:', error);
+            showNotification('Error loading analytics data', 'danger');
+        }
+    }
+
+    function updatePerformanceMetrics(data) {
+        // Total return
+        const totalReturn = data.total_pnl || 0;
+        document.getElementById('total-return').textContent = 
+            (totalReturn >= 0 ? '+' : '') + '$' + totalReturn.toFixed(2);
+        document.getElementById('total-return').className = 
+            totalReturn >= 0 ? 'text-success' : 'text-danger';
+        
+        // Return percentage (assuming initial balance)
+        const returnPercentage = data.return_percentage || 0;
+        document.getElementById('return-percentage').textContent = 
+            (returnPercentage >= 0 ? '+' : '') + returnPercentage.toFixed(2) + '%';
+        
+        // Sharpe ratio
+        document.getElementById('sharpe-ratio').textContent = 
+            (data.sharpe_ratio || 0).toFixed(2);
+        
+        // Max drawdown
+        document.getElementById('max-drawdown-analytics').textContent = 
+            (data.max_drawdown || 0).toFixed(2) + '%';
+        
+        // Win rate
+        document.getElementById('win-rate-analytics').textContent = 
+            (data.win_rate || 0).toFixed(1) + '%';
+        document.getElementById('total-trades-analytics').textContent = 
+            `${data.total_trades || 0} trades`;
+        
+        // Trading statistics
+        document.getElementById('stats-total-trades').textContent = data.total_trades || 0;
+        document.getElementById('stats-winning-trades').textContent = data.profitable_trades || 0;
+        document.getElementById('stats-losing-trades').textContent = 
+            (data.total_trades || 0) - (data.profitable_trades || 0);
+        
+        document.getElementById('stats-avg-profit').textContent = 
+            '$' + (data.average_profit || 0).toFixed(4);
+        document.getElementById('stats-avg-loss').textContent = 
+            '$' + Math.abs(data.average_loss || 0).toFixed(4);
+        document.getElementById('stats-profit-factor').textContent = 
+            (data.profit_factor || 0).toFixed(2);
+        
+        // Update profit distribution chart
+        const profitableTrades = data.profitable_trades || 0;
+        const losingTrades = (data.total_trades || 0) - profitableTrades;
+        
+        profitDistributionChart.data.datasets[0].data = [profitableTrades, losingTrades];
+        profitDistributionChart.update();
+    }
+
+    function updatePortfolioChart(data) {
+        const labels = data.map(point => {
+            const date = new Date(point.timestamp);
+            return date.toLocaleTimeString();
+        });
+        
+        const portfolioValues = data.map(point => point.total_value);
+        const realizedPnL = data.map(point => point.realized_pnl);
+        
+        portfolioChart.data.labels = labels;
+        portfolioChart.data.datasets[0].data = portfolioValues;
+        portfolioChart.data.datasets[1].data = realizedPnL;
+        portfolioChart.update();
+    }
+
+    function updateGridMetrics(gridData) {
+        // Calculate grid statistics
+        let completedCycles = 0;
+        let activeLevels = 0;
+        let totalProfit = 0;
+        
+        gridData.forEach(level => {
+            if (level.status !== 'inactive') {
+                activeLevels++;
+            }
+            // This would need to be tracked in the backend
+            // completedCycles += level.completed_cycles || 0;
+            // totalProfit += level.total_profit || 0;
+        });
+        
+        document.getElementById('grid-completed-cycles').textContent = completedCycles;
+        document.getElementById('grid-active-levels').textContent = activeLevels;
+        document.getElementById('grid-total-profit').textContent = '$' + totalProfit.toFixed(2);
+        
+        // Calculate efficiency (placeholder)
+        const efficiency = activeLevels > 0 ? (completedCycles / activeLevels * 100) : 0;
+        document.getElementById('grid-efficiency').textContent = efficiency.toFixed(2) + '%';
+        
+        // Best performing level (placeholder)
+        document.getElementById('grid-best-level').textContent = 'L' + (gridData.length > 0 ? '0' : '-');
+        
+        // Average cycle time (placeholder)
+        document.getElementById('grid-avg-cycle-time').textContent = '2h 15m';
+    }
+
+    async function loadTradeHistory() {
+        try {
+            // This would need to be implemented in the backend
+            // For now, show placeholder data
+            const tbody = document.getElementById('trades-tbody');
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center text-muted">
+                        <p>Trade history feature coming soon</p>
+                        <small>This will show detailed trade execution history</small>
+                    </td>
+                </tr>
+            `;
+            
+        } catch (error) {
+            console.error('Error loading trade history:', error);
+        }
+    }
+
+    function exportAnalytics() {
+        // Create CSV data
+        const csvData = [
+            ['Metric', 'Value'],
+            ['Total Return', document.getElementById('total-return').textContent],
+            ['Win Rate', document.getElementById('win-rate-analytics').textContent],
+            ['Total Trades', document.getElementById('stats-total-trades').textContent],
+            ['Sharpe Ratio', document.getElementById('sharpe-ratio').textContent],
+            ['Max Drawdown', document.getElementById('max-drawdown-analytics').textContent],
+            ['Profit Factor', document.getElementById('stats-profit-factor').textContent]
+        ];
+        
+        const csvContent = csvData.map(row => row.join(',')).join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `trading_analytics_${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        showNotification('Analytics exported successfully', 'success');
+    }
+
+    // WebSocket updates
+    function updatePerformance(data) {
+        updatePerformanceMetrics(data);
+    }
+</script>
+{% endblock %}
